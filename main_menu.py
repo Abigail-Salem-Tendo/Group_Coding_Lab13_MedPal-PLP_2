@@ -8,11 +8,15 @@ import mysql.connector
 
 class MedicationReminderApp:
     def __init__(self, current_user):
+        # Initialize the app with the current user's username.
+        # Also sets up flags for reminder thread management.
         self.current_user = current_user
         self.reminder_thread = None
         self.running_reminders = False
 
     def get_user_id(self, username: str) -> Optional[int]:
+        # Retrieve the user's ID from the database using their username.
+        # Returns None if not found or if there's a DB error.
         try:
             conn = get_connection()
             cursor = conn.cursor()
@@ -28,6 +32,7 @@ class MedicationReminderApp:
             return None
 
     def create_user(self, username: str):
+        # Add a new user to the database.
         try:
             conn = get_connection()
             cursor = conn.cursor()
@@ -39,6 +44,7 @@ class MedicationReminderApp:
             print(f"❌ Database error while creating user: {err}")
 
     def validate_time_input(self, time_str: str) -> bool:
+        # Check if the input string is a valid hour (0-23).
         try:
             hour = int(time_str)
             return 0 <= hour <= 23
@@ -46,6 +52,7 @@ class MedicationReminderApp:
             return False
 
     def validate_duration_input(self, duration_str: str) -> Optional[int]:
+        # Convert a duration string (e.g. "2 weeks", "30 days") to days.
         duration_str = duration_str.lower().strip()
         try:
             if 'day' in duration_str:
@@ -62,6 +69,7 @@ class MedicationReminderApp:
             return None
 
     def calculate_reminder_times(self, first_dose_hour: int, times_per_day: int, interval_hours: float) -> List[str]:
+        # Calculate the times (HH:MM) for each dose in a day based on user input.
         reminder_times = []
         current_hour = first_dose_hour
         for i in range(times_per_day):
@@ -72,6 +80,7 @@ class MedicationReminderApp:
         return reminder_times
 
     def add_medication(self):
+        # Collect medication details from the user and save them in the database.
         print("\n" + "-"*40)
         print("     ADD NEW MEDICATION")
         print("-"*40)
@@ -114,6 +123,7 @@ class MedicationReminderApp:
                 print("❌ Please enter a positive number!")
             except ValueError:
                 print("❌ Please enter a valid number!")
+        # Calculate reminder times and save medication to DB
         reminder_times = self.calculate_reminder_times(first_dose_hour, times_per_day, interval_hours)
         start_date = datetime.datetime.now()
         end_date = start_date + datetime.timedelta(days=duration_days)
@@ -144,9 +154,8 @@ class MedicationReminderApp:
         input("\nPress Enter to continue...")
 
     def view_medication_history(self):
-        print("\n" + "-"*40)
-        print("     YOUR MEDICATION HISTORY")
-        print("-"*40)
+        # Display all medications for the current user, including status (active, completed, upcoming).
+        print("\n")
         user_id = self.get_user_id(self.current_user)
         if user_id is None:
             print("❌ Could not find user. Please login again.")
@@ -190,6 +199,7 @@ class MedicationReminderApp:
             print(f"❌ Database error while fetching medication history: {err}")
 
     def delete_medication(self):
+        # Allow the user to delete a medication by selecting its ID.
         user_id = self.get_user_id(self.current_user)
         if user_id is None:
             print("❌ Could not find user. Please login again.")
@@ -217,6 +227,7 @@ class MedicationReminderApp:
             print(f"❌ Database error while deleting medication: {err}")
 
     def update_medication(self):
+        # Allow the user to update the name or ailment of a medication.
         user_id = self.get_user_id(self.current_user)
         if user_id is None:
             print("❌ Could not find user. Please login again.")
@@ -259,6 +270,8 @@ class MedicationReminderApp:
             print(f"❌ Database error while updating medication: {err}")
 
     def start_reminders(self):
+        # Start a background thread that checks every minute for medication reminders.
+        # If the current time matches any reminder time, print a notification.
         def reminder_loop():
             import time
             while True:
@@ -283,6 +296,7 @@ class MedicationReminderApp:
             print("⏰ Reminders are running in the background.")
 
 def main():
+    # Main application loop: handles user login and menu navigation.
     try:
         user = welcome()
         if user:
@@ -301,7 +315,7 @@ def main():
                 try:
                     choice = input("👉 Enter your choice (1/2/3/4/5/6): ").strip()
                 except KeyboardInterrupt:
-                    print("\n❌ Program interrupted. Exiting gracefully.")
+                    print("\n❌ Program interrupted. Exiting...")
                     break
                 if choice == "1":
                     print("\n--- Add Medication ---")
