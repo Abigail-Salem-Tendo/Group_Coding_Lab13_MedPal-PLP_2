@@ -188,6 +188,76 @@ class MedicationReminderApp:
             input("\nPress Enter to continue...")
         except mysql.connector.Error as err:
             print(f"❌ Database error while fetching medication history: {err}")
+
+    def delete_medication(self):
+        user_id = self.get_user_id(self.current_user)
+        if user_id is None:
+            print("❌ Could not find user. Please login again.")
+            return
+        try:
+            conn = get_connection()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT id, name FROM medications WHERE user_id = %s", (user_id,))
+            meds = cursor.fetchall()
+            if not meds:
+                print("No medications to delete.")
+                cursor.close()
+                conn.close()
+                return
+            print("\nYour Medications:")
+            for med in meds:
+                print(f"  [{med['id']}] {med['name']}")
+            med_id = input("Enter the ID of the medication to delete: ").strip()
+            cursor.execute("DELETE FROM medications WHERE id = %s AND user_id = %s", (med_id, user_id))
+            conn.commit()
+            print("✅ Medication deleted (if ID was valid).")
+            cursor.close()
+            conn.close()
+        except mysql.connector.Error as err:
+            print(f"❌ Database error while deleting medication: {err}")
+
+    def update_medication(self):
+        user_id = self.get_user_id(self.current_user)
+        if user_id is None:
+            print("❌ Could not find user. Please login again.")
+            return
+        try:
+            conn = get_connection()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT id, name, ailment FROM medications WHERE user_id = %s", (user_id,))
+            meds = cursor.fetchall()
+            if not meds:
+                print("No medications to update.")
+                cursor.close()
+                conn.close()
+                return
+            print("\nYour Medications:")
+            for med in meds:
+                print(f"  [{med['id']}] {med['name']} ({med['ailment']})")
+            med_id = input("Enter the ID of the medication to update: ").strip()
+            new_name = input("Enter new name (leave blank to keep current): ").strip()
+            new_ailment = input("Enter new ailment (leave blank to keep current): ").strip()
+            update_fields = []
+            params = []
+            if new_name:
+                update_fields.append("name = %s")
+                params.append(new_name)
+            if new_ailment:
+                update_fields.append("ailment = %s")
+                params.append(new_ailment)
+            if update_fields:
+                params.append(med_id)
+                params.append(user_id)
+                cursor.execute(f"UPDATE medications SET {', '.join(update_fields)} WHERE id = %s AND user_id = %s", tuple(params))
+                conn.commit()
+                print("✅ Medication updated.")
+            else:
+                print("No changes made.")
+            cursor.close()
+            conn.close()
+        except mysql.connector.Error as err:
+            print(f"❌ Database error while updating medication: {err}")
+
 def main():
     try:
         user = welcome()
@@ -199,10 +269,13 @@ def main():
                 print("="*50)
                 print("  [1] ➕ Add Medication")
                 print("  [2] 📋 View Medication History")
-                print("  [3] 🚪 Logout")
+                print("  [3] ✏️ Update Medication")
+                print("  [4] 🗑️ Delete Medication")
+                print("  [5] 🚪 Logout")
+            
                 print("-"*50)
                 try:
-                    choice = input("👉 Enter your choice (1/2/3): ").strip()
+                    choice = input("👉 Enter your choice (1/2/3/4/5): ").strip()
                 except KeyboardInterrupt:
                     print("\n❌ Program interrupted. Exiting gracefully.")
                     break
@@ -213,6 +286,12 @@ def main():
                     print("\n--- Medication History ---")
                     app.view_medication_history()
                 elif choice == "3":
+                    print("\n--- Update Medication ---")
+                    app.update_medication()
+                elif choice == "4":
+                    print("\n--- Delete Medication ---")
+                    app.delete_medication()
+                elif choice == "5":
                     print("👋 Logging out... Stay healthy!")
                     break
                 else:
