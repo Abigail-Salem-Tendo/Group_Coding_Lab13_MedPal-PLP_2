@@ -3,27 +3,34 @@ from user import User
 def welcome():
     user_manager = User()
     while True:
-        print("\n=== Medication Reminder App ===")
-        print("1. Register")
-        print("2. Login")
-        print("3. Exit")
-        choice = input("Select an option: ").strip()
+        print("\n" + "="*50)
+        print("🌟  MEDICATION REMINDER APP  🌟".center(50))
+        print("="*50)
+        print("\nPlease choose an option:")
+        print("  [1] 📝 Register")
+        print("  [2] 🔑 Login")
+        print("  [3] 🚪 Exit")
+        print("-"*50)
+        choice = input("👉 Enter your choice (1/2/3): ").strip()
         if choice == "1":
-            name = input("Enter username: ").strip()
-            password = input("Enter password: ").strip()
+            print("\n--- Registration ---")
+            name = input("👤 Username: ").strip()
+            password = input("🔒 Password: ").strip()
             user_manager.register_user(name, password)
-            return name  # Proceed to main menu after registration
+            print("🎉 Registration complete! Proceeding to main menu...")
+            return name
         elif choice == "2":
-            name = input("Enter username: ").strip()
-            password = input("Enter password: ").strip()
+            print("\n--- Login ---")
+            name = input("👤 Username: ").strip()
+            password = input("🔒 Password: ").strip()
             if user_manager.login_user(name, password):
-                print(f"Welcome, {name}!")
-                return name  # Proceed to main menu after login
+                print(f"👋 Welcome, {name}! Proceeding to main menu...")
+                return name
         elif choice == "3":
-            print("Goodbye!")
+            print("👋 Goodbye! Stay healthy!")
             return None
         else:
-            print("Invalid option. Please try again.")
+            print("❌ Invalid option. Please try again.")
 
 if __name__ == "__main__":
     user = welcome()

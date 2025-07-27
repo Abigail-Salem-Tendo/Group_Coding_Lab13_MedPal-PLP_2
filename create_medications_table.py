@@ -1,3 +1,7 @@
+#This is a file that was used to create one of the tables were using in the project. (Medications Table)
+
+#Only run this file once to create the medications table in the database, if you found it missing.)
+
 from database import get_connection
 
 def create_medications_table():

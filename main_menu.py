@@ -194,24 +194,29 @@ def main():
         if user:
             app = MedicationReminderApp(user)
             while True:
-                print("\n=== Main Menu ===")
-                print("1. Add Medication")
-                print("2. View Medication History")
-                print("3. Logout")
+                print("\n" + "="*50)
+                print(f"🌿 MAIN MENU - {user.upper()} 🌿".center(50))
+                print("="*50)
+                print("  [1] ➕ Add Medication")
+                print("  [2] 📋 View Medication History")
+                print("  [3] 🚪 Logout")
+                print("-"*50)
                 try:
-                    choice = input("Select an option: ").strip()
+                    choice = input("👉 Enter your choice (1/2/3): ").strip()
                 except KeyboardInterrupt:
                     print("\n❌ Program interrupted. Exiting gracefully.")
                     break
                 if choice == "1":
+                    print("\n--- Add Medication ---")
                     app.add_medication()
                 elif choice == "2":
+                    print("\n--- Medication History ---")
                     app.view_medication_history()
                 elif choice == "3":
-                    print("Logging out...")
+                    print("👋 Logging out... Stay healthy!")
                     break
                 else:
-                    print("Invalid option. Please try again.")
+                    print("❌ Invalid option. Please try again.")
     except mysql.connector.Error as err:
         print(f"❌ Could not connect to the database: {err}")
     except Exception as e:
