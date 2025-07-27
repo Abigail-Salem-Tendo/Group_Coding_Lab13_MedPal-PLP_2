@@ -12,6 +12,18 @@ class User:
             print("Registered successfully")
         except Exception as e:
             print("There was an error while registering your account:", e)
-        finally:
+
+    def login_user(self, name, password):
+        try:
+            self.cursor.execute("SELECT id FROM users WHERE name = %s AND password = %s", (name, password))
+            user = self.cursor.fetchone()
+            if user is None:
+                print("User not found")
+            else:
+                print("Login successful")
+        except Exception as e:
+            print("There was an error while logging in:", e)
+
+    def close_connection(self):
             self.cursor.close()
             self.connection.close()
