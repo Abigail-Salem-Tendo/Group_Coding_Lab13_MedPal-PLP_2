@@ -258,6 +258,30 @@ class MedicationReminderApp:
         except mysql.connector.Error as err:
             print(f"❌ Database error while updating medication: {err}")
 
+    def start_reminders(self):
+        def reminder_loop():
+            import time
+            while True:
+                user_id = self.get_user_id(self.current_user)
+                conn = get_connection()
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("SELECT name, ailment, reminder_times FROM medications WHERE user_id = %s", (user_id,))
+                medications = cursor.fetchall()
+                cursor.close()
+                conn.close()
+                now = datetime.datetime.now().strftime("%H:%M")
+                for med in medications:
+                    times = med['reminder_times'].split(',')
+                    if now in times:
+                        print(f"\n🔔 Reminder: Time to take '{med['name']}' for {med['ailment']}! ({now})")
+                time.sleep(60)  # Check every minute
+
+        if not self.running_reminders:
+            self.running_reminders = True
+            t = threading.Thread(target=reminder_loop, daemon=True)
+            t.start()
+            print("⏰ Reminders are running in the background.")
+
 def main():
     try:
         user = welcome()
@@ -271,11 +295,11 @@ def main():
                 print("  [2] 📋 View Medication History")
                 print("  [3] ✏️ Update Medication")
                 print("  [4] 🗑️ Delete Medication")
-                print("  [5] 🚪 Logout")
-            
+                print("  [5] ⏰ Start Reminders")
+                print("  [6] 🚪 Logout")
                 print("-"*50)
                 try:
-                    choice = input("👉 Enter your choice (1/2/3/4/5): ").strip()
+                    choice = input("👉 Enter your choice (1/2/3/4/5/6): ").strip()
                 except KeyboardInterrupt:
                     print("\n❌ Program interrupted. Exiting gracefully.")
                     break
@@ -292,6 +316,8 @@ def main():
                     print("\n--- Delete Medication ---")
                     app.delete_medication()
                 elif choice == "5":
+                    app.start_reminders()
+                elif choice == "6":
                     print("👋 Logging out... Stay healthy!")
                     break
                 else:
