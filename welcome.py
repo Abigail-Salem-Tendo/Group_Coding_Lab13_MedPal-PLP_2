@@ -15,7 +15,12 @@ def welcome():
         if choice == "1":
             print("\n--- Registration ---")
             name = input("👤 Username: ").strip()
-            password = input("🔒 Password: ").strip()
+            while True:
+                password = input("🔒 Password (digits only): ").strip()
+                if password.isdigit():
+                    break;
+                else:
+                    print("❌ Password must be a number. Please try again.")
             user_manager.register_user(name, password)
             print("🎉 Registration complete! Proceeding to main menu...")
             return name

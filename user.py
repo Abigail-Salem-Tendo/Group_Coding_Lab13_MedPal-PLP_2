@@ -1,4 +1,5 @@
 from database import get_connection
+import sys 
 
 class User:
     def register_user(self, name, password):
@@ -10,6 +11,7 @@ class User:
             print("✅ Registered successfully")
         except Exception as e:
             print("❌ There was an error while registering your account:", e)
+            sys.exit(1) 
         finally:
             cursor.close()
             connection.close()
