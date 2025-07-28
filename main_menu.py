@@ -4,6 +4,7 @@ import time
 import threading
 from database import get_connection
 from welcome import welcome
+from user import session
 import mysql.connector
 
 class MedicationReminderApp:
@@ -15,21 +16,22 @@ class MedicationReminderApp:
         self.running_reminders = False
 
     def get_user_id(self, username: str) -> Optional[int]:
-        # Retrieve the user's ID from the database using their username.
-        # Returns None if not found or if there's a DB error.
         try:
+    # If username is a dict (e.g., user object), extract 'name', else use as is
+            actual_username = username["name"] if isinstance(username, dict) else username
+
             conn = get_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT id FROM users WHERE name = %s", (username,))
-            result = cursor.fetchone()
+            cursor = conn.cursor(buffered=True)  # <— important
+            cursor.execute("SELECT id FROM users WHERE name = %s LIMIT 1", (actual_username,))
+            row = cursor.fetchone()
             cursor.close()
             conn.close()
-            if result:
-                return result[0]
-            return None
+            return row[0] if row else None
         except mysql.connector.Error as err:
             print(f"❌ Database error while fetching user ID: {err}")
             return None
+
+
 
     def create_user(self, username: str):
         # Add a new user to the database.
@@ -182,6 +184,7 @@ class MedicationReminderApp:
                     try:
                         start_date = datetime.datetime.fromisoformat(med['start_date'])
                         end_date = datetime.datetime.fromisoformat(med['end_date'])
+
                         now = datetime.datetime.now()
                         print(f"🗓️  Start date: {start_date.strftime('%Y-%m-%d')}")
                         print(f"🏁 End date: {end_date.strftime('%Y-%m-%d')}")
@@ -298,12 +301,14 @@ class MedicationReminderApp:
 def main():
     # Main application loop: handles user login and menu navigation.
     try:
-        user = welcome()
+        welcome()
+        user = session.get("user")
+        app = MedicationReminderApp(user["name"])
         if user:
             app = MedicationReminderApp(user)
             while True:
                 print("\n" + "="*50)
-                print(f"🌿 MAIN MENU - {user.upper()} 🌿".center(50))
+                print(f"🌿 MAIN MENU -  {user['name'].upper()} 🌿".center(50))
                 print("="*50)
                 print("  [1] ➕ Add Medication")
                 print("  [2] 📋 View Medication History")
