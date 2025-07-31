@@ -18,26 +18,21 @@ def welcome():
             while True:
                 password = input("🔒 Password (digits only): ").strip()
                 if password.isdigit():
-                    break;
+                    break
                 else:
                     print("❌ Password must be a number. Please try again.")
             user_manager.register_user(name, password)
             print("🎉 Registration complete! Proceeding to main menu...")
-            return name
+            return  # Don't return name; session is already set
         elif choice == "2":
             print("\n--- Login ---")
             name = input("👤 Username: ").strip()
             password = input("🔒 Password: ").strip()
             if user_manager.login_user(name, password):
                 print(f"👋 Welcome, {name}! Proceeding to main menu...")
-                return name
+                return  # Don't return name; session is already set
         elif choice == "3":
             print("👋 Goodbye! Stay healthy!")
-            return None
+            exit(0)
         else:
             print("❌ Invalid option. Please try again.")
-
-if __name__ == "__main__":
-    user = welcome()
-    if user:
-        print(f"Proceeding to main menu for {user}...")
